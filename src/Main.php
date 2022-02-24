@@ -6,6 +6,7 @@ namespace VaxPex;
 
 use pocketmine\block\BlockFactory;
 use pocketmine\event\Listener;
+use pocketmine\item\StringToItemParser;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\plugin\PluginBase;
 use VaxPex\block\NetheriteBlock;
@@ -39,6 +40,8 @@ class Main extends PluginBase implements Listener {
 			$ref->setAccessible(true);
 			$ref->invoke($runtimeBlockMapping, $runtimeId, $legacyId, $meta);
 		}
+
+		StringToItemParser::getInstance()->registerBlock("netherite_block", fn() => BlockFactory::getInstance()->get(525, 0));
 
 		BlockFactory::getInstance()->register(new NetheriteBlock);
 	}
