@@ -15,9 +15,9 @@ class Main extends PluginBase implements Listener {
 
 	protected function onEnable(): void{
 		$legacyIdMap = json_decode(file_get_contents(\pocketmine\BEDROCK_DATA_PATH . "block_id_map.json"), true);
+		$runtimeBlockMapping = RuntimeBlockMapping::getInstance();
 		$metaMap = [];
 
-		$runtimeBlockMapping = RuntimeBlockMapping::getInstance();
 		foreach($runtimeBlockMapping->getBedrockKnownStates() as $runtimeId => $state){
 			$name = $state->getString("name");
 			if(!isset($legacyIdMap[$name])){
