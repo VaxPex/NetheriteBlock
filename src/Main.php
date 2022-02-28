@@ -26,9 +26,7 @@ class Main extends PluginBase implements Listener
 
 	protected function onEnable(): void
 	{
-		if (!is_file($this->getDataFolder() . "creativeitems.json")) {
-			$this->saveResource("creativeitems.json");
-		}
+		$this->saveResource("creativeitems.json");
 
 		$runtimeBlockMapping = RuntimeBlockMapping::getInstance();
 		$legacyIdMap = json_decode(file_get_contents(\pocketmine\BEDROCK_DATA_PATH . "block_id_map.json"), true);
