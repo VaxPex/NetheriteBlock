@@ -27,40 +27,31 @@ class Main extends PluginBase implements Listener
 	protected function onEnable(): void
 	{
 		$this->saveResource("creativeitems.json");
-
-		$runtimeBlockMapping = RuntimeBlockMapping::getInstance();
 		$legacyIdMap = json_decode(file_get_contents(\pocketmine\BEDROCK_DATA_PATH . "block_id_map.json"), true);
 		$metaMap = [];
-
-		foreach ($runtimeBlockMapping->getBedrockKnownStates() as $runtimeId => $state) {
-			$name = $state->getString("name");
-			if (!isset($legacyIdMap[$name])) {
+		foreach (RuntimeBlockMapping::getInstance()->getBedrockKnownStates() as $runtimeId => $state) {
+			if (!isset($legacyIdMap[$state->getString("name")])) {
 				continue;
 			}
 
-			$legacyId = $legacyIdMap[$name];
-			if ($legacyId <= 469) {
+			if ($legacyIdMap[$state->getString("name")] <= 469) {
 				continue;
-			} elseif (!isset($metaMap[$legacyId])) {
-				$metaMap[$legacyId] = 0;
+			} elseif (!isset($metaMap[$legacyIdMap[$state->getString("name")]])) {
+				$metaMap[$legacyIdMap[$state->getString("name")]] = 0;
 			}
 
-			$meta = $metaMap[$legacyId]++;
+			$meta = $metaMap[$legacyIdMap[$state->getString("name")]]++;
 			if ($meta > 15) {
 				continue;
 			}
 
-			$ref = new \ReflectionMethod($runtimeBlockMapping, "registerMapping");
+			$ref = new \ReflectionMethod(RuntimeBlockMapping::getInstance(), "registerMapping");
 			$ref->setAccessible(true);
-			$ref->invoke($runtimeBlockMapping, $runtimeId, $legacyId, $meta);
+			$ref->invoke(RuntimeBlockMapping::getInstance(), $runtimeId, $legacyId, $meta);
 		}
-
 		StringToItemParser::getInstance()->registerBlock("netherite_block", fn() => BlockFactory::getInstance()->get(525, 0));
-
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
-		$itemId = -270;
-		$blockId = 525;
-		BlockFactory::getInstance()->register(new Block(new BlockIdentifier($blockId, 0, $itemId), "Block of Netherite", new BlockBreakInfo(50, BlockToolType::PICKAXE, 5, 6000)));
+		BlockFactory::getInstance()->register(new Block(new BlockIdentifier(525, 0, -270), "Block of Netherite", new BlockBreakInfo(50, BlockToolType::PICKAXE, 5, 6000)));
 		$creativeItems = json_decode(file_get_contents(Path::join(\pocketmine\BEDROCK_DATA_PATH, "creativeitems.json")), true);
 		foreach ($creativeItems as $data) {
 			$item = Item::jsonDeserialize($data);
@@ -96,24 +87,19 @@ class Main extends PluginBase implements Listener
 					throw new \TypeError("Expected Vector3 in blocks array, got " . (is_object($b) ? get_class($b) : gettype($b)));
 				}
 				$pk = new UpdateBlockPacket();
-
 				$first = false;
 				if (!isset($chunks[$index = World::chunkHash($b->x >> 4, $b->z >> 4)])) {
 					$chunks[$index] = true;
 					$first = true;
 				}
-
 				$pk->blockPosition = new BlockPosition($b->getPosition()->x, $b->getPosition()->y, $b->getPosition()->z);
-
 				if ($b instanceof Block) {
 					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($b->getFullId());
 				} else {
 					$fullBlock = $this->getFullBlock($world, $b->getPosition()->x, $b->getPosition()->y, $b->getPosition()->z);
 					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId(BlockFactory::getInstance()->get($fullBlock >> 4, $fullBlock & 0xf)->getFullId());
 				}
-
 				$pk->flags = $first ? $flags : UpdateBlockPacket::FLAG_NONE;
-
 				$packets[] = $pk;
 			}
 		} else {
@@ -122,22 +108,17 @@ class Main extends PluginBase implements Listener
 					throw new \TypeError("Expected Vector3 in blocks array, got " . (is_object($b) ? get_class($b) : gettype($b)));
 				}
 				$pk = new UpdateBlockPacket();
-
 				$pk->blockPosition = new BlockPosition($b->getPosition()->x, $b->getPosition()->y, $b->getPosition()->z);
-
 				if ($b instanceof Block) {
 					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId($b->getFullId());
 				} else {
 					$fullBlock = $this->getFullBlock($world, $b->getPosition()->x, $b->getPosition()->y, $b->getPosition()->z);
 					$pk->blockRuntimeId = RuntimeBlockMapping::getInstance()->toRuntimeId(BlockFactory::getInstance()->get($fullBlock >> 4, $fullBlock & 0xf)->getFullId());
 				}
-
 				$pk->flags = $flags;
-
 				$packets[] = $pk;
 			}
 		}
-
 		$this->getServer()->broadcastPackets($target, $packets);
 	}
 }
