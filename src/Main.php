@@ -47,7 +47,7 @@ class Main extends PluginBase implements Listener
 
 			$ref = new \ReflectionMethod(RuntimeBlockMapping::getInstance(), "registerMapping");
 			$ref->setAccessible(true);
-			$ref->invoke(RuntimeBlockMapping::getInstance(), $runtimeId, $legacyId, $meta);
+			$ref->invoke(RuntimeBlockMapping::getInstance(), $runtimeId, $legacyIdMap[$state->getString("name")], $meta);
 		}
 		StringToItemParser::getInstance()->registerBlock("netherite_block", fn() => BlockFactory::getInstance()->get(525, 0));
 		$this->getServer()->getPluginManager()->registerEvents($this, $this);
